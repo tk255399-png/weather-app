@@ -45,10 +45,15 @@
         <div class="history-title">Recent Searches</div>
         <div id="historyList"></div>
     </div>
-</div>
-</div> <footer style="text-align: center; margin-top: 20px; font-size: 14px; color: #64748b;">
-        <p>Created by <strong>Tharani.k(MIT)</strong> | © 2026 Weather App</p>
-    </footer>
+</div> <!-- This closes your main white weather card container -->
+
+    <!-- This wrapping block forces the footer to take up its own clean line at the bottom -->
+    <div style="width: 100%; display: block; clear: both; margin-top: 40px;">
+        <footer style="text-align: center; padding-bottom: 20px; font-size: 14px; color: #64748b; font-family: sans-serif;">
+            <p>Created by <strong>Tharani.k(MIT)</strong> | © 2026 Weather App</p>
+        </footer>
+    </div>
+
 
 <script>
    const backendUrl = window.location.origin + "/api";
