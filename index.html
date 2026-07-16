@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Dashboard</title>
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f4f8; margin: 0; padding: 40px; display: flex; justify-content: center; }
+        .card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); width: 100%; max-width: 400px; }
+        h2 { margin-top: 0; color: #1e293b; text-align: center; }
+        .search-box { display: flex; gap: 10px; margin-bottom: 20px; }
+        input { flex: 1; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 16px; }
+        button { background: #2563eb; color: white; border: none; padding: 10px 16px; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: 500; }
+        button:hover { background: #1d4ed8; }
+        .error { color: #dc2626; background: #fee2e2; padding: 10px; border-radius: 6px; display: none; margin-bottom: 15px; font-size: 14px; text-align: center; }
+        .weather-info { text-align: center; display: none; margin-top: 20px; padding: 20px; border-radius: 8px; background: #f8fafc; }
+        .temp { font-size: 48px; font-weight: bold; color: #0f172a; margin: 10px 0; }
+        .history-box { margin-top: 25px; border-top: 1px solid #e2e8f0; padding-top: 15px; }
+        .history-title { font-size: 14px; font-weight: bold; color: #64748b; margin-bottom: 8px; }
+        .history-item { display: inline-block; background: #e2e8f0; color: #334155; padding: 4px 10px; border-radius: 20px; font-size: 13px; margin: 4px; cursor: pointer; }
+        .history-item:hover { background: #cbd5e1; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>Weather Forecast</h2>
+    
+    <div class="search-box">
+        <input type="text" id="cityInput" placeholder="Enter city name...">
+        <button onclick="fetchWeather()">Search</button>
+    </div>
+
+    <div id="errorMsg" class="error"></div>
+
+    <div id="weatherResult" class="weather-info">
+        <h3 id="cityName" style="margin:0; color:#334155;"></h3>
+        <img id="weatherIcon" src="" alt="Weather condition status logo">
+        <div id="weatherTemp" class="temp"></div>
+        <div id="weatherCondition" style="color:#64748b; font-weight:500;"></div>
+        <div id="weatherHumidity" style="margin-top: 10px; font-size: 14px; color:#94a3b8;"></div>
+    </div>
+
+    <div class="history-box">
+        <div class="history-title">Recent Searches</div>
+        <div id="historyList"></div>
+    </div>
+</div>
+
+<script>
+   const backendUrl = window.location.origin + "/api";
+
+    async function fetchWeather(cityName = null) {
+        const city = cityName || document.getElementById('cityInput').value.trim();
+        const errorDiv = document.getElementById('errorMsg');
+        const resultDiv = document.getElementById('weatherResult');
+        
+        if (!city) return;
+        errorDiv.style.display = "none";
+        
+        try {
+            const response = await fetch(`${backendUrl}/weather?city=${encodeURIComponent(city)}`);
+            const data = await response.json();
+            
+            if (!response.ok) {
+                throw new Error(data.detail || "Error loading weather details");
+            }
+
+            document.getElementById('cityName').innerText = `${data.city}, ${data.country}`;
+            document.getElementById('weatherIcon').src = `https:${data.icon}`;
+            document.getElementById('weatherTemp').innerText = `${data.temp}°C`;
+            document.getElementById('weatherCondition').innerText = data.condition;
+            document.getElementById('weatherHumidity').innerText = `Humidity: ${data.humidity}%`;
+            
+            resultDiv.style.display = "block";
+            if(!cityName) document.getElementById('cityInput').value = "";
+            loadHistory();
+        } catch (err) {
+            resultDiv.style.display = "none";
+            errorDiv.innerText = err.message;
+            errorDiv.style.display = "block";
+        }
+    }
+
+    async function loadHistory() {
+        try {
+            const response = await fetch(`${backendUrl}/history`);
+            const data = await response.json();
+            const listContainer = document.getElementById('historyList');
+            listContainer.innerHTML = "";
+            
+            data.history.forEach(item => {
+                const span = document.createElement('span');
+                span.className = "history-item";
+                span.innerText = item;
+                span.onclick = () => fetchWeather(item.split(',')[0]);
+                listContainer.appendChild(span);
+            });
+        } catch (e) { console.error("History logging failed", e); }
+    }
+
+    loadHistory();
+</script>
+</body>
+</html>
